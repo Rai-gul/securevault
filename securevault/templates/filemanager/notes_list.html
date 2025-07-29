@@ -1,0 +1,794 @@
+{% extends 'base.html' %}
+
+{% block title %}My Notes - SecureVault{% endblock %}
+
+{% block content %}
+<style>
+    .notes-header {
+        background: rgba(15, 20, 25, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(129, 230, 217, 0.2);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .page-title {
+        color: #f7fafc;
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .notes-count-badge {
+        background: linear-gradient(135deg, #4fd1c7, #81e6d9);
+        color: #0f1419;
+        padding: 5px 15px;
+        border-radius: 15px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .btn-modern {
+        padding: 12px 25px;
+        border: none;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #4fd1c7, #81e6d9);
+        color: #0f1419;
+        box-shadow: 0 4px 15px rgba(79, 209, 199, 0.4);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(79, 209, 199, 0.6);
+        color: #0f1419;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: rgba(129, 230, 217, 0.1);
+        color: #81e6d9;
+        border: 1px solid rgba(129, 230, 217, 0.3);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(129, 230, 217, 0.2);
+        transform: translateY(-2px);
+        color: #81e6d9;
+        text-decoration: none;
+    }
+
+    .search-controls {
+        background: rgba(15, 20, 25, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(129, 230, 217, 0.2);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .search-container {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .search-form {
+        display: flex;
+        gap: 10px;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 12px 20px;
+        border: 1px solid rgba(129, 230, 217, 0.3);
+        border-radius: 25px;
+        background: rgba(15, 20, 25, 0.8);
+        color: #f7fafc;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: rgba(79, 209, 199, 0.8);
+        box-shadow: 0 0 20px rgba(79, 209, 199, 0.3);
+    }
+
+    .search-input::placeholder {
+        color: rgba(129, 230, 217, 0.6);
+    }
+
+    .search-btn {
+        padding: 12px 20px;
+        background: rgba(129, 230, 217, 0.1);
+        border: 1px solid rgba(129, 230, 217, 0.3);
+        border-radius: 25px;
+        color: #81e6d9;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .search-btn:hover {
+        background: rgba(129, 230, 217, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .notes-container {
+        background: rgba(15, 20, 25, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(129, 230, 217, 0.2);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Grid View */
+    .notes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 25px;
+    }
+
+    .note-card {
+        background: rgba(129, 230, 217, 0.05);
+        border: 1px solid rgba(129, 230, 217, 0.15);
+        border-radius: 15px;
+        padding: 0;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        height: fit-content;
+    }
+
+    .note-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(129, 230, 217, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .note-card:hover::before {
+        left: 100%;
+    }
+
+    .note-card:hover {
+        transform: translateY(-8px);
+        background: rgba(129, 230, 217, 0.1);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        border-color: rgba(129, 230, 217, 0.3);
+    }
+
+    .note-header {
+        background: rgba(129, 230, 217, 0.1);
+        padding: 20px;
+        border-bottom: 1px solid rgba(129, 230, 217, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .note-title {
+        color: #f7fafc;
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .note-menu {
+        position: relative;
+    }
+
+    .note-menu-btn {
+        background: rgba(129, 230, 217, 0.1);
+        border: 1px solid rgba(129, 230, 217, 0.2);
+        border-radius: 8px;
+        color: #81e6d9;
+        padding: 6px 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 12px;
+    }
+
+    .note-menu-btn:hover {
+        background: rgba(129, 230, 217, 0.2);
+        border-color: rgba(129, 230, 217, 0.3);
+    }
+
+    .note-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: rgba(15, 20, 25, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(129, 230, 217, 0.2);
+        border-radius: 10px;
+        padding: 8px;
+        min-width: 120px;
+        display: none;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        margin-top: 5px;
+    }
+
+    .note-dropdown.show {
+        display: block;
+        animation: slideDown 0.2s ease;
+    }
+
+    .dropdown-item {
+        display: block;
+        color: rgba(129, 230, 217, 0.8);
+        text-decoration: none;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        font-size: 13px;
+        margin-bottom: 2px;
+    }
+
+    .dropdown-item:hover {
+        color: #f7fafc;
+        background: rgba(129, 230, 217, 0.1);
+        text-decoration: none;
+    }
+
+    .dropdown-item.danger {
+        color: rgba(252, 129, 129, 0.9);
+    }
+
+    .dropdown-item.danger:hover {
+        color: #fc8181;
+        background: rgba(252, 129, 129, 0.1);
+    }
+
+    .note-body {
+        padding: 20px;
+    }
+
+    .note-content {
+        color: rgba(226, 232, 240, 0.8);
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 15px;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .note-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 15px;
+    }
+
+    .note-tag {
+        background: rgba(116, 185, 255, 0.2);
+        color: #74b9ff;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    .note-meta {
+        color: rgba(129, 230, 217, 0.6);
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* List View */
+    .notes-list {
+        display: none;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .note-list-item {
+        background: rgba(129, 230, 217, 0.05);
+        border: 1px solid rgba(129, 230, 217, 0.1);
+        border-radius: 15px;
+        padding: 20px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .note-list-item:hover {
+        background: rgba(129, 230, 217, 0.1);
+        transform: translateX(5px);
+        border-color: rgba(129, 230, 217, 0.2);
+    }
+
+    .note-list-content {
+        flex: 1;
+    }
+
+    .note-list-title {
+        color: #f7fafc;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .note-list-text {
+        color: rgba(226, 232, 240, 0.8);
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 10px;
+    }
+
+    .note-list-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 8px;
+    }
+
+    .note-list-meta {
+        color: rgba(129, 230, 217, 0.6);
+        font-size: 12px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: rgba(129, 230, 217, 0.6);
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        color: rgba(129, 230, 217, 0.4);
+    }
+
+    .empty-title {
+        font-size: 24px;
+        color: #f7fafc;
+        margin-bottom: 10px;
+    }
+
+    .empty-text {
+        margin-bottom: 30px;
+        font-size: 16px;
+    }
+
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+    }
+
+    .pagination {
+        display: flex;
+        gap: 5px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .page-item {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .page-link {
+        padding: 10px 15px;
+        background: rgba(129, 230, 217, 0.1);
+        border: 1px solid rgba(129, 230, 217, 0.2);
+        color: #81e6d9;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .page-link:hover {
+        background: rgba(129, 230, 217, 0.2);
+        color: #f7fafc;
+        text-decoration: none;
+    }
+
+    .page-item.active .page-link {
+        background: linear-gradient(135deg, #4fd1c7, #81e6d9);
+        color: #0f1419;
+        border-color: #4fd1c7;
+    }
+
+    /* Modal Styling */
+    .modal-content {
+        background: rgba(15, 20, 25, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(129, 230, 217, 0.2);
+        border-radius: 20px;
+        color: #f7fafc;
+    }
+
+    .modal-header {
+        border-bottom: 1px solid rgba(129, 230, 217, 0.2);
+    }
+
+    .modal-footer {
+        border-top: 1px solid rgba(129, 230, 217, 0.2);
+    }
+
+    .btn-close {
+        filter: invert(1);
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+        .search-container {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .notes-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .page-title {
+            font-size: 24px;
+        }
+        
+        .note-list-item {
+            flex-direction: column;
+            gap: 15px;
+        }
+    }
+</style>
+
+<div class="notes-header">
+    <h1 class="page-title">
+        <i class="fas fa-sticky-note"></i>
+        My Notes
+        <span class="notes-count-badge">{{ page_obj.paginator.count }} notes</span>
+    </h1>
+    <div class="header-actions">
+        <a href="{% url 'create_note' %}" class="btn-modern btn-primary">
+            <i class="fas fa-plus"></i> New Note
+        </a>
+        <button class="btn-modern btn-secondary" onclick="toggleNotesView()">
+            <i id="notesViewIcon" class="fas fa-th"></i> <span id="notesViewText">Grid View</span>
+        </button>
+    </div>
+</div>
+
+<div class="search-controls">
+    <div class="search-container">
+        <form method="get" class="search-form">
+            <input type="text" name="search" class="search-input" 
+                   placeholder="Search notes by title, content, or tags..." value="{{ search_query }}">
+            <button type="submit" class="search-btn">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+        <div>
+            <button class="btn-modern btn-secondary" onclick="toggleNotesView()">
+                <i id="notesViewIcon2" class="fas fa-th"></i> <span id="notesViewText2">Switch View</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="notes-container">
+    {% if page_obj %}
+        <!-- Grid View (Default) -->
+        <div id="notesGridView" class="notes-grid">
+            {% for note in page_obj %}
+            <div class="note-card" onclick="openNote('{{ note.id }}')">
+                <div class="note-header">
+                    <h3 class="note-title">{{ note.title }}</h3>
+                    <div class="note-menu" onclick="event.stopPropagation();">
+                        <button class="note-menu-btn" onclick="toggleDropdown('{{ note.id }}')">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div class="note-dropdown" id="dropdown-{{ note.id }}">
+                            <a class="dropdown-item" href="{% url 'edit_note' note.id %}">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <a class="dropdown-item danger" href="{% url 'delete_note' note.id %}" 
+                               onclick="return confirm('Delete this note?')">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="note-body">
+                    <div class="note-content">{{ note.content|truncatechars:150 }}</div>
+                    {% if note.tags %}
+                        <div class="note-tags">
+                            {% for tag in note.tag_list %}
+                                <span class="note-tag">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="note-meta">
+                        <i class="fas fa-clock"></i> {{ note.updated_at|timesince }} ago
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- List View -->
+        <div id="notesListView" class="notes-list">
+            {% for note in page_obj %}
+            <div class="note-list-item" onclick="openNote('{{ note.id }}')">
+                <div class="note-list-content">
+                    <h3 class="note-list-title">{{ note.title }}</h3>
+                    <div class="note-list-text">{{ note.content|truncatechars:200 }}</div>
+                    {% if note.tags %}
+                        <div class="note-list-tags">
+                            {% for tag in note.tag_list %}
+                                <span class="note-tag">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="note-list-meta">Updated {{ note.updated_at|timesince }} ago</div>
+                </div>
+                <div class="note-menu" onclick="event.stopPropagation();">
+                    <button class="note-menu-btn" onclick="toggleDropdown('list-{{ note.id }}')">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <div class="note-dropdown" id="dropdown-list-{{ note.id }}">
+                        <a class="dropdown-item" href="{% url 'edit_note' note.id %}">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a class="dropdown-item danger" href="{% url 'delete_note' note.id %}" 
+                           onclick="return confirm('Delete this note?')">
+                            <i class="fas fa-trash"></i> Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="pagination-container">
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                            Previous
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                            Next
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+
+    {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-sticky-note"></i>
+            </div>
+            <h3 class="empty-title">No notes found</h3>
+            {% if search_query %}
+                <p class="empty-text">No notes match your search for "{{ search_query }}"</p>
+                <a href="{% url 'notes_list' %}" class="btn-modern btn-secondary">Clear Search</a>
+            {% else %}
+                <p class="empty-text">Create your first encrypted note to get started</p>
+                <a href="{% url 'create_note' %}" class="btn-modern btn-primary">
+                    <i class="fas fa-plus"></i> Create Note
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- Note Preview Modal -->
+<div class="modal fade" id="noteModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="noteModalTitle">Note Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="noteModalContent">
+                <!-- Note content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modern btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn-modern btn-primary" id="editNoteBtn">
+                    <i class="fas fa-edit"></i> Edit Note
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleNotesView() {
+    const gridView = document.getElementById('notesGridView');
+    const listView = document.getElementById('notesListView');
+    const viewIcon = document.getElementById('notesViewIcon');
+    const viewText = document.getElementById('notesViewText');
+    const viewIcon2 = document.getElementById('notesViewIcon2');
+    const viewText2 = document.getElementById('notesViewText2');
+    
+    if (gridView.style.display === 'none' || gridView.style.display === '') {
+        // Show grid view
+        gridView.style.display = 'grid';
+        listView.style.display = 'none';
+        viewIcon.className = 'fas fa-list';
+        viewText.textContent = 'List View';
+        viewIcon2.className = 'fas fa-list';
+        viewText2.textContent = 'List View';
+    } else {
+        // Show list view
+        gridView.style.display = 'none';
+        listView.style.display = 'flex';
+        viewIcon.className = 'fas fa-th';
+        viewText.textContent = 'Grid View';
+        viewIcon2.className = 'fas fa-th';
+        viewText2.textContent = 'Grid View';
+    }
+}
+
+function toggleDropdown(noteId) {
+    // Close all other dropdowns
+    document.querySelectorAll('.note-dropdown').forEach(dropdown => {
+        if (dropdown.id !== 'dropdown-' + noteId) {
+            dropdown.classList.remove('show');
+        }
+    });
+    
+    // Toggle current dropdown
+    const dropdown = document.getElementById('dropdown-' + noteId);
+    if (dropdown) {
+        dropdown.classList.toggle('show');
+    }
+}
+
+function openNote(noteId) {
+    // Direct navigation to edit page using the actual note ID
+    window.location.href = '/notes/edit/' + noteId + '/';
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.note-menu')) {
+        document.querySelectorAll('.note-dropdown').forEach(dropdown => {
+            dropdown.classList.remove('show');
+        });
+    }
+});
+
+// Enhanced search with real-time filtering
+function enhanceSearch() {
+    const searchInput = document.querySelector('.search-input');
+    if (!searchInput) return;
+    
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            const query = this.value.toLowerCase();
+            const gridNotes = document.querySelectorAll('#notesGridView .note-card');
+            const listNotes = document.querySelectorAll('#notesListView .note-list-item');
+            
+            // Filter grid view notes
+            gridNotes.forEach(note => {
+                const titleElement = note.querySelector('.note-title');
+                const contentElement = note.querySelector('.note-content');
+                
+                if (titleElement && contentElement) {
+                    const title = titleElement.textContent.toLowerCase();
+                    const content = contentElement.textContent.toLowerCase();
+                    
+                    if (title.includes(query) || content.includes(query) || query === '') {
+                        note.style.display = '';
+                        note.style.animation = 'fadeIn 0.3s ease';
+                    } else {
+                        note.style.display = 'none';
+                    }
+                }
+            });
+            
+            // Filter list view notes
+            listNotes.forEach(note => {
+                const titleElement = note.querySelector('.note-list-title');
+                const contentElement = note.querySelector('.note-list-text');
+                
+                if (titleElement && contentElement) {
+                    const title = titleElement.textContent.toLowerCase();
+                    const content = contentElement.textContent.toLowerCase();
+                    
+                    if (title.includes(query) || content.includes(query) || query === '') {
+                        note.style.display = '';
+                        note.style.animation = 'fadeIn 0.3s ease';
+                    } else {
+                        note.style.display = 'none';
+                    }
+                }
+            });
+        }, 300);
+    });
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    enhanceSearch();
+});
+
+// Add fade in animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

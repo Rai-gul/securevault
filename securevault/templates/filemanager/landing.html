@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+
+{% block title %}SecureVault - Anonymous File Storage{% endblock %}
+
+{% block content %}
+<style>
+    .landing-container {
+        padding: 60px 20px;
+        min-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .hero-section {
+        text-align: center;
+        margin-bottom: 80px;
+    }
+
+    .hero-icon {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #4fd1c7, #81e6d9);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 40px;
+        color: #0f1419;
+        font-size: 48px;
+        animation: heroFloat 3s ease-in-out infinite;
+        box-shadow: 0 10px 30px rgba(79, 209, 199, 0.3);
+    }
+
+    @keyframes heroFloat {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .hero-title {
+        color: #f7fafc;
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 20px;
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        line-height: 1.2;
+    }
+
+    .hero-subtitle {
+        color: rgba(129, 230, 217, 0.9);
+        font-size: 1.3rem;
+        margin-bottom: 0;
+        font-weight: 400;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-bottom: 60px;
+        max-width: 1000px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .feature-card {
+        background: rgba(15, 20, 25, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(129, 230, 217, 0.2);
+        border-radius: 20px;
+        padding: 40px 30px;
+        text-align: center;
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(129, 230, 217, 0.1), transparent);
+        transition: left 0.6s ease;
+    }
+
+    .feature-card:hover::before {
+        left: 100%;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        border-color: rgba(129, 230, 217, 0.4);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px;
+        font-size: 32px;
+        color: #0f1419;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:nth-child(1) .feature-icon {
+        background: linear-gradient(135deg, #48bb78, #38a169);
+    }
+
+    .feature-card:nth-child(2) .feature-icon {
+        background: linear-gradient(135deg, #4fd1c7, #81e6d9);
+    }
+
+    .feature-card:nth-child(3) .feature-icon {
+        background: linear-gradient(135deg, #74b9ff, #0984e3);
+    }
+
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .feature-title {
+        color: #f7fafc;
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .feature-description {
+        color: rgba(129, 230, 217, 0.8);
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    .cta-section {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 25px;
+        justify-content: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+
+    .btn-hero {
+        padding: 18px 40px;
+        border: none;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        min-width: 180px;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-primary-hero {
+        background: linear-gradient(135deg, #4fd1c7, #81e6d9);
+        color: #0f1419;
+        box-shadow: 0 6px 20px rgba(79, 209, 199, 0.4);
+    }
+
+    .btn-primary-hero:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(79, 209, 199, 0.6);
+        color: #0f1419;
+        text-decoration: none;
+    }
+
+    .btn-secondary-hero {
+        background: rgba(129, 230, 217, 0.1);
+        color: #81e6d9;
+        border: 2px solid rgba(129, 230, 217, 0.3);
+    }
+
+    .btn-secondary-hero:hover {
+        background: rgba(129, 230, 217, 0.2);
+        transform: translateY(-3px);
+        color: #81e6d9;
+        text-decoration: none;
+        border-color: rgba(129, 230, 217, 0.5);
+    }
+
+    .info-note {
+        background: rgba(116, 185, 255, 0.1);
+        border: 1px solid rgba(116, 185, 255, 0.2);
+        border-radius: 15px;
+        padding: 15px 20px;
+        color: rgba(116, 185, 255, 0.9);
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .floating-elements {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    .floating-circle {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(129, 230, 217, 0.1);
+        animation: floatCircle 20s linear infinite;
+    }
+
+    .floating-circle:nth-child(1) {
+        width: 100px;
+        height: 100px;
+        top: 20%;
+        left: 10%;
+        animation-delay: 0s;
+    }
+
+    .floating-circle:nth-child(2) {
+        width: 60px;
+        height: 60px;
+        top: 60%;
+        right: 10%;
+        animation-delay: 7s;
+    }
+
+    .floating-circle:nth-child(3) {
+        width: 80px;
+        height: 80px;
+        bottom: 20%;
+        left: 20%;
+        animation-delay: 14s;
+    }
+
+    @keyframes floatCircle {
+        0%, 100% { 
+            transform: translateY(0px) rotate(0deg);
+            opacity: 0.3;
+        }
+        50% { 
+            transform: translateY(-20px) rotate(180deg);
+            opacity: 0.6;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .landing-container {
+            padding: 40px 15px;
+        }
+        
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+        
+        .features-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .cta-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn-hero {
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .hero-icon {
+            width: 100px;
+            height: 100px;
+            font-size: 40px;
+        }
+    }
+</style>
+
+<div class="floating-elements">
+    <div class="floating-circle"></div>
+    <div class="floating-circle"></div>
+    <div class="floating-circle"></div>
+</div>
+
+<div class="landing-container">
+    <div class="hero-section">
+        <div class="hero-icon">
+            <i class="fas fa-lock"></i>
+        </div>
+        <h1 class="hero-title">Welcome to SecureVault</h1>
+        <p class="hero-subtitle">Anonymous file storage with military-grade encryption</p>
+    </div>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3 class="feature-title">100% Anonymous</h3>
+            <p class="feature-description">No tracking, no logs, complete privacy. Your identity remains completely protected.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h3 class="feature-title">Military Encryption</h3>
+            <p class="feature-description">AES-256 encryption for all files. The same security used by governments worldwide.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-cloud-upload-alt"></i>
+            </div>
+            <h3 class="feature-title">Easy Upload</h3>
+            <p class="feature-description">Drag & drop file sharing with instant secure links. Simple, fast, and secure.</p>
+        </div>
+    </div>
+
+    <div class="cta-section">
+        <div class="cta-buttons">
+            <a href="{% url 'register' %}" class="btn-hero btn-primary-hero">
+                <i class="fas fa-user-plus"></i>
+                Get Started Free
+            </a>
+            <a href="{% url 'login' %}" class="btn-hero btn-secondary-hero">
+                <i class="fas fa-sign-in-alt"></i>
+                Sign In
+            </a>
+        </div>
+        
+        <div class="info-note">
+            <i class="fas fa-info-circle"></i>
+            <span>No registration required for basic file sharing</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

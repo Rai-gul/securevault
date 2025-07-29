@@ -1,0 +1,512 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - SecureVault{% endblock %}
+
+{% block content %}
+<style>
+    .dashboard-content {
+        padding: 0;
+        min-height: calc(100vh - 60px);
+    }
+
+    .page-header {
+        margin-bottom: 30px;
+    }
+
+    .page-title {
+        color: #f7fafc;
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 5px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .page-subtitle {
+        color: rgba(129, 230, 217, 0.8);
+        font-size: 16px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+
+    .stat-card {
+        background: rgba(15, 20, 25, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(129, 230, 217, 0.2);
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        background: rgba(15, 20, 25, 0.9);
+        border-color: rgba(129, 230, 217, 0.4);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: #0f1419;
+    }
+
+    .stat-card:nth-child(1) .stat-icon {
+        background: linear-gradient(135deg, #4fd1c7, #81e6d9);
+    }
+
+    .stat-card:nth-child(2) .stat-icon {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    .stat-card:nth-child(3) .stat-icon {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+    }
+
+    .stat-card:nth-child(4) .stat-icon {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+    }
+
+    .stat-number {
+        font-size: 32px;
+        font-weight: 700;
+        color: #f7fafc;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .stat-label {
+        color: rgba(129, 230, 217, 0.8);
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    .main-content {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 30px;
+    }
+
+    .files-section {
+        background: rgba(15, 20, 25, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(129, 230, 217, 0.2);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    .section-title {
+        color: #f7fafc;
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+    }
+
+    .btn {
+        padding: 12px 25px;
+        border: none;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #4fd1c7, #81e6d9);
+        color: #0f1419;
+        box-shadow: 0 4px 15px rgba(79, 209, 199, 0.4);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(79, 209, 199, 0.6);
+        color: #0f1419;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: rgba(129, 230, 217, 0.1);
+        color: #81e6d9;
+        border: 1px solid rgba(129, 230, 217, 0.3);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(129, 230, 217, 0.2);
+        transform: translateY(-2px);
+        color: #81e6d9;
+        text-decoration: none;
+    }
+
+    .files-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .file-card {
+        background: rgba(15, 20, 25, 0.6);
+        border: 1px solid rgba(129, 230, 217, 0.15);
+        border-radius: 15px;
+        padding: 20px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .file-card:hover {
+        transform: translateY(-5px);
+        background: rgba(15, 20, 25, 0.8);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        border-color: rgba(129, 230, 217, 0.3);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .file-icon {
+        width: 50px;
+        height: 50px;
+        margin: 0 auto 15px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: #0f1419;
+    }
+
+    .file-icon.default {
+        background: linear-gradient(135deg, #4fd1c7, #81e6d9);
+    }
+
+    .file-name {
+        color: #f7fafc;
+        font-weight: 500;
+        margin-bottom: 8px;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    .file-size {
+        color: rgba(129, 230, 217, 0.6);
+        font-size: 12px;
+        text-align: center;
+    }
+
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 60px 20px;
+        color: rgba(129, 230, 217, 0.6);
+    }
+
+    .empty-icon {
+        font-size: 48px;
+        margin-bottom: 20px;
+        color: rgba(129, 230, 217, 0.4);
+    }
+
+    .empty-title {
+        margin-bottom: 10px;
+        color: #f7fafc;
+        font-size: 24px;
+    }
+
+    .empty-text {
+        margin-bottom: 20px;
+        font-size: 16px;
+    }
+
+    .sidebar-widget {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .widget {
+        background: rgba(15, 20, 25, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(129, 230, 217, 0.2);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .widget-title {
+        color: #f7fafc;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .storage-progress {
+        position: relative;
+        height: 8px;
+        background: rgba(129, 230, 217, 0.1);
+        border-radius: 50px;
+        overflow: hidden;
+        margin-bottom: 15px;
+    }
+
+    .storage-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4fd1c7, #81e6d9);
+        border-radius: 50px;
+        width: 67%;
+    }
+
+    .storage-text {
+        color: rgba(129, 230, 217, 0.8);
+        font-size: 14px;
+    }
+
+    .recent-files {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .recent-file {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 12px;
+        background: rgba(129, 230, 217, 0.05);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        border: 1px solid rgba(129, 230, 217, 0.1);
+    }
+
+    .recent-file:hover {
+        background: rgba(129, 230, 217, 0.1);
+        transform: translateX(5px);
+        text-decoration: none;
+        color: inherit;
+        border-color: rgba(129, 230, 217, 0.2);
+    }
+
+    .recent-file-icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #0f1419;
+    }
+
+    .recent-file-info {
+        flex: 1;
+    }
+
+    .recent-file-name {
+        color: #f7fafc;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 2px;
+    }
+
+    .recent-file-time {
+        color: rgba(129, 230, 217, 0.6);
+        font-size: 12px;
+    }
+
+    .empty-recent {
+        text-align: center;
+        padding: 20px;
+        color: rgba(129, 230, 217, 0.6);
+    }
+
+    .empty-recent i {
+        font-size: 24px;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+        .main-content {
+            grid-template-columns: 1fr;
+        }
+        
+        .files-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+    }
+</style>
+
+<div class="dashboard-content">
+    <div class="page-header">
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Welcome back, {{ user.username }}! Here's what's happening with your files.</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-file"></i>
+            </div>
+            <span class="stat-number">{{ total_files }}</span>
+            <div class="stat-label">Total Files</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-hdd"></i>
+            </div>
+            <span class="stat-number">{{ total_size }}</span>
+            <div class="stat-label">Storage Used</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-sticky-note"></i>
+            </div>
+            <span class="stat-number">{{ recent_notes|length }}</span>
+            <div class="stat-label">Notes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <span class="stat-number">100%</span>
+            <div class="stat-label">Encrypted</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="files-section">
+            <div class="section-header">
+                <h2 class="section-title">Recent Files</h2>
+                <div class="action-buttons">
+                    <a href="{% url 'upload_file' %}" class="btn btn-primary">
+                        <i class="fas fa-upload"></i>
+                        Upload Files
+                    </a>
+                    <a href="{% url 'create_note' %}" class="btn btn-secondary">
+                        <i class="fas fa-sticky-note"></i>
+                        Create Note
+                    </a>
+                </div>
+            </div>
+            
+            <div class="files-grid">
+                {% if recent_files %}
+                    {% for file in recent_files %}
+                    <div class="file-card">
+                        <div class="file-icon default">
+                            {{ file.file_icon|safe }}
+                        </div>
+                        <div class="file-name">{{ file.name }}</div>
+                        <div class="file-size">{{ file.file_size_formatted }} • {{ file.uploaded_at|timesince }} ago</div>
+                    </div>
+                    {% endfor %}
+                    
+                    <a href="{% url 'file_list' %}" class="file-card" style="border: 2px dashed rgba(129, 230, 217, 0.3);">
+                        <div class="file-icon" style="background: linear-gradient(135deg, rgba(129, 230, 217, 0.1), rgba(129, 230, 217, 0.05));">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </div>
+                        <div class="file-name">View All Files</div>
+                        <div class="file-size">See complete file list</div>
+                    </a>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <h3 class="empty-title">No files yet</h3>
+                        <p class="empty-text">Upload your first file to get started</p>
+                        <a href="{% url 'upload_file' %}" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Upload First File
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="sidebar-widget">
+            <div class="widget">
+                <h3 class="widget-title">Storage Usage</h3>
+                <div class="storage-progress">
+                    <div class="storage-fill"></div>
+                </div>
+                <div class="storage-text">{{ total_size }} used</div>
+            </div>
+
+            <div class="widget">
+                <h3 class="widget-title">Recent Notes</h3>
+                <div class="recent-files">
+                    {% if recent_notes %}
+                        {% for note in recent_notes %}
+                        <a href="{% url 'edit_note' note.id %}" class="recent-file">
+                            <div class="recent-file-icon" style="background: linear-gradient(135deg, #4fd1c7, #81e6d9);">
+                                <i class="fas fa-sticky-note"></i>
+                            </div>
+                            <div class="recent-file-info">
+                                <div class="recent-file-name">{{ note.title }}</div>
+                                <div class="recent-file-time">{{ note.updated_at|timesince }} ago</div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                        
+                        <a href="{% url 'notes_list' %}" class="recent-file" style="border-top: 1px solid rgba(129, 230, 217, 0.1); margin-top: 10px; padding-top: 15px;">
+                            <div class="recent-file-icon" style="background: rgba(129, 230, 217, 0.1);">
+                                <i class="fas fa-list"></i>
+                            </div>
+                            <div class="recent-file-info">
+                                <div class="recent-file-name">View All Notes</div>
+                                <div class="recent-file-time">See complete notes list</div>
+                            </div>
+                        </a>
+                    {% else %}
+                        <div class="empty-recent">
+                            <i class="fas fa-sticky-note"></i>
+                            <p style="margin-bottom: 15px;">No notes yet</p>
+                            <a href="{% url 'create_note' %}" class="btn btn-primary" style="font-size: 12px; padding: 8px 16px;">
+                                <i class="fas fa-plus"></i> Create Note
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

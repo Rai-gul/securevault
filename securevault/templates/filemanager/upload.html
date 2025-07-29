@@ -1,0 +1,822 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Files - SecureVault{% endblock %}
+
+{% block content %}
+<style>
+    .upload-container {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+
+    .upload-main {
+        background: rgba(15, 20, 25, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(129, 230, 217, 0.2);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .page-header {
+        margin-bottom: 30px;
+    }
+
+    .page-title {
+        color: #f7fafc;
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .page-subtitle {
+        color: rgba(129, 230, 217, 0.8);
+        font-size: 16px;
+    }
+
+    .upload-area {
+        border: 3px dashed rgba(129, 230, 217, 0.3);
+        border-radius: 20px;
+        padding: 60px 40px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        background: rgba(129, 230, 217, 0.02);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .upload-area::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(129, 230, 217, 0.1), transparent);
+        transition: left 0.6s ease;
+    }
+
+    .upload-area:hover::before {
+        left: 100%;
+    }
+
+    .upload-area:hover {
+        border-color: rgba(129, 230, 217, 0.6);
+        background: rgba(129, 230, 217, 0.05);
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .upload-area.drag-over {
+        border-color: #4fd1c7;
+        background: rgba(79, 209, 199, 0.1);
+        transform: scale(1.02);
+    }
+
+    .upload-icon {
+        font-size: 4rem;
+        color: rgba(129, 230, 217, 0.6);
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .upload-area:hover .upload-icon {
+        color: #4fd1c7;
+        transform: scale(1.1);
+    }
+
+    .upload-title {
+        color: #f7fafc;
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .upload-text {
+        color: rgba(129, 230, 217, 0.8);
+        font-size: 16px;
+        margin-bottom: 25px;
+    }
+
+    .file-input-hidden {
+        display: none;
+    }
+
+    .select-btn {
+        padding: 15px 30px;
+        background: linear-gradient(135deg, #4fd1c7, #81e6d9);
+        color: #0f1419;
+        border: none;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(79, 209, 199, 0.4);
+    }
+
+    .select-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(79, 209, 199, 0.6);
+    }
+
+    .upload-progress {
+        margin-top: 30px;
+        display: none;
+    }
+
+    .progress-title {
+        color: #f7fafc;
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .progress-item {
+        background: rgba(129, 230, 217, 0.05);
+        border: 1px solid rgba(129, 230, 217, 0.1);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+    }
+
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .progress-filename {
+        color: #f7fafc;
+        font-weight: 500;
+    }
+
+    .progress-percent {
+        color: #4fd1c7;
+        font-weight: 600;
+    }
+
+    .progress-bar-container {
+        height: 8px;
+        background: rgba(129, 230, 217, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #4fd1c7, #81e6d9);
+        border-radius: 10px;
+        width: 0%;
+        transition: width 0.3s ease;
+        position: relative;
+    }
+
+    .progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .upload-queue {
+        margin-top: 30px;
+        display: none;
+    }
+
+    .queue-title {
+        color: #f7fafc;
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .queue-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(129, 230, 217, 0.05);
+        border: 1px solid rgba(129, 230, 217, 0.1);
+        border-radius: 15px;
+        padding: 15px 20px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .queue-item:hover {
+        background: rgba(129, 230, 217, 0.1);
+        border-color: rgba(129, 230, 217, 0.2);
+    }
+
+    .queue-file-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .queue-file-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #4fd1c7, #81e6d9);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0f1419;
+        font-size: 18px;
+    }
+
+    .queue-file-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .queue-file-name {
+        color: #f7fafc;
+        font-weight: 500;
+        margin-bottom: 2px;
+    }
+
+    .queue-file-size {
+        color: rgba(129, 230, 217, 0.6);
+        font-size: 12px;
+    }
+
+    .queue-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .queue-status {
+        background: rgba(116, 185, 255, 0.2);
+        color: #74b9ff;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .remove-btn {
+        background: rgba(252, 129, 129, 0.1);
+        border: 1px solid rgba(252, 129, 129, 0.3);
+        color: #fc8181;
+        border-radius: 8px;
+        padding: 6px 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 12px;
+    }
+
+    .remove-btn:hover {
+        background: rgba(252, 129, 129, 0.2);
+        border-color: rgba(252, 129, 129, 0.5);
+    }
+
+    .queue-controls {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .btn-upload {
+        background: linear-gradient(135deg, #48bb78, #38a169);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 12px 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+    }
+
+    .btn-upload:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(72, 187, 120, 0.6);
+    }
+
+    .btn-clear {
+        background: rgba(129, 230, 217, 0.1);
+        color: #81e6d9;
+        border: 1px solid rgba(129, 230, 217, 0.3);
+        border-radius: 50px;
+        padding: 12px 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-clear:hover {
+        background: rgba(129, 230, 217, 0.2);
+        transform: translateY(-2px);
+    }
+
+    /* Sidebar */
+    .upload-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .sidebar-card {
+        background: rgba(15, 20, 25, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(129, 230, 217, 0.2);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .sidebar-title {
+        color: #f7fafc;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-item {
+        margin-bottom: 15px;
+    }
+
+    .info-label {
+        color: #f7fafc;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        color: rgba(129, 230, 217, 0.8);
+        font-size: 14px;
+    }
+
+    .info-value.success {
+        color: #48bb78;
+    }
+
+    .info-value.primary {
+        color: #4fd1c7;
+    }
+
+    .quick-action {
+        display: block;
+        width: 100%;
+        padding: 12px 20px;
+        background: rgba(129, 230, 217, 0.1);
+        border: 1px solid rgba(129, 230, 217, 0.2);
+        border-radius: 15px;
+        color: #81e6d9;
+        text-decoration: none;
+        font-weight: 500;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .quick-action:hover {
+        background: rgba(129, 230, 217, 0.2);
+        color: #f7fafc;
+        text-decoration: none;
+        transform: translateX(5px);
+    }
+
+    @media (max-width: 768px) {
+        .upload-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .upload-area {
+            padding: 40px 20px;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+        }
+        
+        .upload-title {
+            font-size: 20px;
+        }
+    }
+</style>
+
+<div class="upload-container">
+    <div class="upload-main">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-upload"></i>
+                Upload Files
+            </h1>
+            <p class="page-subtitle">Drag & drop or click to select files for secure upload</p>
+        </div>
+
+        <!-- Upload Area -->
+        <div id="dropZone" class="upload-area">
+            <div class="upload-icon">
+                <i class="fas fa-cloud-upload-alt"></i>
+            </div>
+            <h3 class="upload-title">Drop files here to upload</h3>
+            <p class="upload-text">or click to browse files from your device</p>
+            <input type="file" id="fileInput" multiple class="file-input-hidden">
+            <button type="button" class="select-btn" onclick="document.getElementById('fileInput').click()">
+                <i class="fas fa-plus"></i> Select Files
+            </button>
+        </div>
+
+        <!-- Upload Progress -->
+        <div id="uploadProgress" class="upload-progress">
+            <h3 class="progress-title">Uploading Files...</h3>
+            <div id="progressBars"></div>
+        </div>
+
+        <!-- Upload Queue -->
+        <div id="uploadQueue" class="upload-queue">
+            <h3 class="queue-title">Files Ready to Upload</h3>
+            <div id="queueList"></div>
+            <div class="queue-controls">
+                <button type="button" class="btn-upload" onclick="startUpload()">
+                    <i class="fas fa-upload"></i> Upload All Files
+                </button>
+                <button type="button" class="btn-clear" onclick="clearQueue()">
+                    <i class="fas fa-trash"></i> Clear Queue
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="upload-sidebar">
+        <!-- Upload Information -->
+        <div class="sidebar-card">
+            <h3 class="sidebar-title">
+                <i class="fas fa-info-circle"></i>
+                Upload Information
+            </h3>
+            <div class="info-item">
+                <div class="info-label">Max File Size:</div>
+                <div class="info-value">50 MB per file</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Supported Formats:</div>
+                <div class="info-value">All file types supported</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Security:</div>
+                <div class="info-value success">
+                    <i class="fas fa-shield-alt"></i> AES-256 Encrypted
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Files Uploaded Today:</div>
+                <div class="info-value primary" id="todayCount">0</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="sidebar-card">
+            <h3 class="sidebar-title">
+                <i class="fas fa-bolt"></i>
+                Quick Actions
+            </h3>
+            <a href="{% url 'file_list' %}" class="quick-action">
+                <i class="fas fa-list"></i> View All Files
+            </a>
+            <a href="{% url 'create_note' %}" class="quick-action">
+                <i class="fas fa-sticky-note"></i> Create Note
+            </a>
+            <a href="{% url 'home' %}" class="quick-action">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- CSRF Token -->
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+<script>
+let uploadQueue = [];
+let uploading = false;
+
+// Initialize upload functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    
+    // Drag and drop events
+    dropZone.addEventListener('dragover', handleDragOver);
+    dropZone.addEventListener('dragleave', handleDragLeave);
+    dropZone.addEventListener('drop', handleDrop);
+    dropZone.addEventListener('click', () => fileInput.click());
+    
+    // File input change
+    fileInput.addEventListener('change', handleFileSelect);
+    
+    // Prevent default drag behaviors on the whole document
+    document.addEventListener('dragover', (e) => e.preventDefault());
+    document.addEventListener('drop', (e) => e.preventDefault());
+});
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.remove('drag-over');
+    
+    const files = Array.from(e.dataTransfer.files);
+    addFilesToQueue(files);
+}
+
+function handleFileSelect(e) {
+    const files = Array.from(e.target.files);
+    addFilesToQueue(files);
+    
+    // Clear the input so the same file can be selected again
+    e.target.value = '';
+}
+
+function addFilesToQueue(files) {
+    files.forEach(file => {
+        // Check file size (50MB limit)
+        if (file.size > 50 * 1024 * 1024) {
+            showNotification(`File ${file.name} is too large (max 50MB)`, 'error');
+            return;
+        }
+        
+        const fileId = Date.now() + Math.random();
+        uploadQueue.push({
+            id: fileId,
+            file: file,
+            status: 'queued'
+        });
+    });
+    
+    updateQueueDisplay();
+}
+
+function updateQueueDisplay() {
+    const queueDiv = document.getElementById('uploadQueue');
+    const queueList = document.getElementById('queueList');
+    
+    if (uploadQueue.length === 0) {
+        queueDiv.style.display = 'none';
+        return;
+    }
+    
+    queueDiv.style.display = 'block';
+    
+    queueList.innerHTML = uploadQueue.map(item => `
+        <div class="queue-item">
+            <div class="queue-file-info">
+                <div class="queue-file-icon">
+                    <i class="fas fa-file"></i>
+                </div>
+                <div class="queue-file-details">
+                    <div class="queue-file-name">${item.file.name}</div>
+                    <div class="queue-file-size">${formatFileSize(item.file.size)}</div>
+                </div>
+            </div>
+            <div class="queue-actions">
+                <span class="queue-status">${item.status}</span>
+                <button class="remove-btn" onclick="removeFromQueue('${item.id}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function removeFromQueue(fileId) {
+    uploadQueue = uploadQueue.filter(item => item.id != fileId);
+    updateQueueDisplay();
+}
+
+function clearQueue() {
+    uploadQueue = [];
+    updateQueueDisplay();
+}
+
+async function startUpload() {
+    if (uploading || uploadQueue.length === 0) return;
+    
+    uploading = true;
+    const progressDiv = document.getElementById('uploadProgress');
+    const progressBars = document.getElementById('progressBars');
+    
+    progressDiv.style.display = 'block';
+    progressBars.innerHTML = '';
+    
+    let successCount = 0;
+    
+    for (let item of uploadQueue) {
+        const success = await uploadFile(item);
+        if (success) successCount++;
+    }
+    
+    uploading = false;
+    uploadQueue = [];
+    updateQueueDisplay();
+    
+    setTimeout(() => {
+        progressDiv.style.display = 'none';
+    }, 3000);
+    
+    showNotification(`${successCount} files uploaded successfully!`, 'success');
+    
+    // Redirect to file list after successful upload
+    setTimeout(() => {
+        window.location.href = "{% url 'file_list' %}";
+    }, 2000);
+}
+
+async function uploadFile(item) {
+    const formData = new FormData();
+    formData.append('file', item.file);
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    
+    // Create progress bar
+    const progressId = `progress-${item.id}`;
+    const progressHTML = `
+        <div class="progress-item">
+            <div class="progress-header">
+                <span class="progress-filename">${item.file.name}</span>
+                <span id="${progressId}-percent" class="progress-percent">0%</span>
+            </div>
+            <div class="progress-bar-container">
+                <div id="${progressId}" class="progress-bar"></div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('progressBars').innerHTML += progressHTML;
+    
+    try {
+        // Simulate progress
+        const progressBar = document.getElementById(progressId);
+        const progressPercent = document.getElementById(progressId + '-percent');
+        
+        // Start upload
+        const uploadPromise = fetch("{% url 'upload_file' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        // Simulate progress animation
+        for (let i = 0; i <= 90; i += 10) {
+            progressBar.style.width = i + '%';
+            progressPercent.textContent = i + '%';
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        const response = await uploadPromise;
+        
+        // Complete the progress bar
+        progressBar.style.width = '100%';
+        progressPercent.textContent = '100%';
+        
+        if (response.ok) {
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const result = await response.json();
+                if (result.success) {
+                    progressBar.style.background = 'linear-gradient(90deg, #48bb78, #38a169)';
+                    return true;
+                } else {
+                    throw new Error(result.message || 'Upload failed');
+                }
+            } else {
+                // If not JSON, assume success (redirect response)
+                progressBar.style.background = 'linear-gradient(90deg, #48bb78, #38a169)';
+                return true;
+            }
+        } else {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+    } catch (error) {
+        console.error('Upload error:', error);
+        document.getElementById(progressId).style.background = 'linear-gradient(90deg, #fc8181, #f56565)';
+        showNotification(`Failed to upload ${item.file.name}: ${error.message}`, 'error');
+        return false;
+    }
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        padding: 15px 20px;
+        border-radius: 15px;
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        animation: slideInRight 0.3s ease;
+        backdrop-filter: blur(20px);
+    `;
+    
+    if (type === 'success') {
+        notification.style.background = 'linear-gradient(135deg, #48bb78, #38a169)';
+    } else if (type === 'error') {
+        notification.style.background = 'linear-gradient(135deg, #fc8181, #f56565)';
+    } else {
+        notification.style.background = 'linear-gradient(135deg, #4fd1c7, #81e6d9)';
+        notification.style.color = '#0f1419';
+    }
+    
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span>${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" style="
+                background: none;
+                border: none;
+                color: inherit;
+                font-size: 18px;
+                cursor: pointer;
+                margin-left: 15px;
+                padding: 5px;
+                border-radius: 5px;
+                transition: background 0.3s ease;
+            " onmouseover="this.style.background='rgba(0,0,0,0.1)'" onmouseout="this.style.background='none'">×</button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 5000);
+}
+
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}
