@@ -38,6 +38,7 @@ Templates and forms display plaintext via the note.decrypted_content property.
 
 Quick Example
 
+```bash
 python manage.py shell
 from filemanager.models import Note
 note = Note.objects.create(title="Hello", content="My secret", owner_id=1)
@@ -46,6 +47,7 @@ exit()
 
 Running Tests
 
+```bash
 python manage.py test filemanager.tests.test_encryption
 
 Contributing
@@ -58,4 +60,5 @@ License
 
 This project is licensed under the MIT License.
 
+```bash
 ::contentReference[oaicite:0]{index=0}
