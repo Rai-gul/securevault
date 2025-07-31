@@ -30,41 +30,32 @@ pip install --upgrade pip
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
+
+
 🔒 Security
 On each Note.save(), plaintext is encrypted using a Fernet key stored in settings.py.
 Templates and forms display plaintext via the note.decrypted_content property.
 
 Quick Example
-bash
-Copy
-Edit
+
 python manage.py shell
-python
-Copy
-Edit
 from filemanager.models import Note
 note = Note.objects.create(title="Hello", content="My secret", owner_id=1)
 print(note.decrypted_content)  # outputs "My secret"
-bash
-Copy
-Edit
 exit()
+
 Running Tests
-bash
-Copy
-Edit
+
 python manage.py test filemanager.tests.test_encryption
+
 Contributing
+
 Fork the repo
-
 Create a new feature branch
-
 Submit a pull request
 
 License
+
 This project is licensed under the MIT License.
 
-makefile
-Copy
-Edit
 ::contentReference[oaicite:0]{index=0}
