@@ -30,6 +30,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
+<<<<<<< HEAD
 
 
 🔒 Security
@@ -62,3 +63,5 @@ This project is licensed under the MIT License.
 
 ```bash
 ::contentReference[oaicite:0]{index=0}
+=======
+>>>>>>> 2df9182 (Publish latest SecureVault with encryption feature)

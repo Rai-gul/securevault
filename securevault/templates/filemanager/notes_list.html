@@ -537,8 +537,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="note-body">
-                    <div class="note-content">{{ note.content|truncatechars:150 }}</div>
+              <div class="note-body">
+                <div class="note-content">{{ note.decrypted_content|truncatechars:150 }}</div>
                     {% if note.tags %}
                         <div class="note-tags">
                             {% for tag in note.tag_list %}
@@ -560,7 +560,7 @@
             <div class="note-list-item" onclick="openNote('{{ note.id }}')">
                 <div class="note-list-content">
                     <h3 class="note-list-title">{{ note.title }}</h3>
-                    <div class="note-list-text">{{ note.content|truncatechars:200 }}</div>
+                    <div class="note-list-text">{{ note.decrypted_content|truncatechars:200 }}</div>
                     {% if note.tags %}
                         <div class="note-list-tags">
                             {% for tag in note.tag_list %}
