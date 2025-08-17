@@ -3,9 +3,18 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-(qq*t7(fl&bs^%z+qg+oa_z771++p%rq=*)7krby(6xdiqbd+z')
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-(qq*t7(fl&bs^%z+qg+oa_z771++p%rq=*)7krby(6xdiqbd+z'
+)
+
 DEBUG = True
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    'securevault.yourdomain.com',
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -80,7 +89,7 @@ LOGOUT_REDIRECT_URL = 'login'
 
 # Fernet key for encrypting notes
 FERNET_KEY = os.environ.get(
-    'FERNET_KEY', 
+    'FERNET_KEY',
     'QUsrqTXCO2sQdK23Bp29coZ6nKXyU23fzly6hv3mVBk='
 )
 
@@ -91,11 +100,4 @@ EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-ALLOWED_HOSTS = ["securevault.yourdomain.com"]
-
-import sys
-print("EMAIL_BACKEND is", EMAIL_BACKEND, file=sys.stderr)
-
 DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'noreply@securevault.local')

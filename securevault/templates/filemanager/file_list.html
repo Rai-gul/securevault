@@ -406,6 +406,8 @@
     }
 </style>
 
+
+
 <div class="files-header">
     <h1 class="page-title">
         <i class="fas fa-folder"></i>
@@ -425,7 +427,7 @@
 <div class="search-filters">
     <div class="search-container">
         <form method="get" class="search-form">
-            <input type="text" name="search" class="search-input" 
+            <input type="text" name="search" class="search-input"
                    placeholder="Search files..." value="{{ search_query }}">
             <button type="submit" class="search-btn">
                 <i class="fas fa-search"></i>
@@ -462,6 +464,12 @@
     </div>
 </div>
 
+<!-- Hidden bulk-delete form -->
+<form id="bulkDeleteForm" method="post" action="{% url 'bulk_delete_files' %}" style="display:none;">
+  {% csrf_token %}
+  <div id="bulkDeleteInputs"></div>
+</form>
+
 <div class="files-container">
     {% if page_obj %}
         <div id="listView">
@@ -483,7 +491,7 @@
                     {% for file in page_obj %}
                     <tr>
                         <td>
-                            <input type="checkbox" class="file-checkbox" value="{{ file.id }}" 
+                            <input type="checkbox" class="file-checkbox" value="{{ file.id }}"
                                    onchange="updateSelection()">
                         </td>
                         <td class="file-icon">{{ file.file_icon|safe }}</td>
@@ -495,24 +503,30 @@
                         </td>
                         <td>{{ file.file_size_formatted }}</td>
                         <td>{{ file.uploaded_at|timesince }} ago</td>
-                        <td>
-                            <span class="download-badge">{{ file.download_count }}</span>
-                        </td>
+                        <td><span class="download-badge">{{ file.download_count }}</span></td>
                         <td>
                             <div class="file-actions">
-                                <button class="action-btn preview" onclick="previewFile('{{ file.id }}', '{{ file.file_type }}', '{{ file.name }}')">
+                                <button class="action-btn preview"
+                                        onclick="previewFile('{{ file.id }}', '{{ file.file_type }}', '{{ file.name }}')">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                <a href="{% url 'download_file' file.id %}" class="action-btn download">
+
+                                <a href="{% url 'download_file' file_id=file.id %}" class="action-btn download">
                                     <i class="fas fa-download"></i>
                                 </a>
+
                                 <button class="action-btn share" onclick="shareFile('{{ file.id }}')">
                                     <i class="fas fa-share"></i>
                                 </button>
-                                <a href="{% url 'delete_file' file.id %}" class="action-btn delete" 
-                                   onclick="return confirm('Delete this file?')">
+
+                                <!-- Delete via POST -->
+                                <form method="post" action="{% url 'delete_file' file_id=file.id %}" style="display:inline"
+                                      onsubmit="return confirm('Delete this file?')">
+                                  {% csrf_token %}
+                                  <button type="submit" class="action-btn delete">
                                     <i class="fas fa-trash"></i>
-                                </a>
+                                  </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -531,12 +545,9 @@
                         </a>
                     </li>
                 {% endif %}
-                
                 {% for num in page_obj.paginator.page_range %}
                     {% if page_obj.number == num %}
-                        <li class="page-item active">
-                            <span class="page-link">{{ num }}</span>
-                        </li>
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
                     {% else %}
                         <li class="page-item">
                             <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">
@@ -545,7 +556,6 @@
                         </li>
                     {% endif %}
                 {% endfor %}
-                
                 {% if page_obj.has_next %}
                     <li class="page-item">
                         <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
@@ -556,12 +566,9 @@
             </ul>
         </div>
         {% endif %}
-
     {% else %}
         <div class="empty-state">
-            <div class="empty-icon">
-                <i class="fas fa-folder-open"></i>
-            </div>
+            <div class="empty-icon"><i class="fas fa-folder-open"></i></div>
             <h3 class="empty-title">No files found</h3>
             {% if search_query %}
                 <p class="empty-text">No files match your search for "{{ search_query }}"</p>
@@ -579,77 +586,70 @@
 <script>
 let selectedFiles = new Set();
 
-function toggleView() {
-    // Note: Grid view functionality can be implemented later
-    console.log('Toggle view functionality would go here');
-}
+function toggleView() { console.log('Toggle view placeholder'); }
 
 function toggleSelectAll() {
     const selectAll = document.getElementById('selectAll');
     const checkboxes = document.querySelectorAll('.file-checkbox:not(#selectAll)');
-    
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = selectAll.checked;
-    });
-    
+    checkboxes.forEach(cb => cb.checked = selectAll.checked);
     updateSelection();
 }
 
 function updateSelection() {
     const checkboxes = document.querySelectorAll('.file-checkbox:not(#selectAll):checked');
     selectedFiles.clear();
-    
-    checkboxes.forEach(checkbox => {
-        selectedFiles.add(checkbox.value);
-    });
-    
-    const bulkActions = document.getElementById('bulkActions');
-    const selectedCount = document.getElementById('selectedCount');
-    
+    checkboxes.forEach(cb => selectedFiles.add(cb.value));
+
+    const bulk = document.getElementById('bulkActions');
+    const count = document.getElementById('selectedCount');
     if (selectedFiles.size > 0) {
-        bulkActions.style.display = 'block';
-        selectedCount.textContent = selectedFiles.size;
+        bulk.style.display = 'block';
+        count.textContent = selectedFiles.size;
     } else {
-        bulkActions.style.display = 'none';
+        bulk.style.display = 'none';
     }
 }
 
 function clearSelection() {
-    document.querySelectorAll('.file-checkbox').forEach(checkbox => {
-        checkbox.checked = false;
-    });
+    document.querySelectorAll('.file-checkbox').forEach(cb => cb.checked = false);
     updateSelection();
 }
 
 function bulkDownload() {
-    if (selectedFiles.size === 0) return;
-    
-    selectedFiles.forEach(fileId => {
-        const link = document.createElement('a');
-        link.href = `/download/${fileId}/`;
-        link.click();
+    if (!selectedFiles.size) return;
+    selectedFiles.forEach(id => {
+        const a = document.createElement('a');
+        a.href = `/files/${id}/download/`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
     });
-    
     showNotification(`Downloading ${selectedFiles.size} files`, 'success');
 }
 
 function bulkDelete() {
-    if (selectedFiles.size === 0) return;
-    
-    if (confirm(`Delete ${selectedFiles.size} selected files? This cannot be undone.`)) {
-        showNotification(`${selectedFiles.size} files would be deleted`, 'info');
-        // Implement actual delete functionality
-    }
+    if (!selectedFiles.size) return;
+    if (!confirm(`Delete ${selectedFiles.size} selected file(s)? This cannot be undone.`)) return;
+
+    const form = document.getElementById('bulkDeleteForm');
+    const inputs = document.getElementById('bulkDeleteInputs');
+    inputs.innerHTML = '';
+    selectedFiles.forEach(id => {
+        const inp = document.createElement('input');
+        inp.type = 'hidden';
+        inp.name = 'file_ids';
+        inp.value = id;
+        inputs.appendChild(inp);
+    });
+    form.submit();
 }
 
 function previewFile(fileId, fileType, fileName) {
-    showNotification('Preview functionality would open here', 'info');
-    // Implement preview modal
+    showNotification('Preview would open here (implement modal if needed)', 'info');
 }
 
 function shareFile(fileId) {
-    showNotification('Share functionality would open here', 'info');
-    // Implement share modal
+    showNotification('Share dialog would open here', 'info');
 }
 
 function sortFiles(criteria) {
@@ -657,6 +657,29 @@ function sortFiles(criteria) {
     url.searchParams.set('sort', criteria);
     window.location.href = url.toString();
 }
+
+function showNotification(message, type) {
+    const n = document.createElement('div');
+    n.style.cssText = `
+        position: fixed; top: 20px; right: 20px; z-index: 9999;
+        min-width: 300px; padding: 15px 20px; border-radius: 10px;
+        color: white; font-weight: 500; box-shadow: 0 4px 20px rgba(0,0,0,.3);
+        animation: slideIn .3s ease;
+    `;
+    n.style.background = type === 'success'
+        ? 'linear-gradient(135deg,#48bb78,#38a169)'
+        : type === 'error'
+          ? 'linear-gradient(135deg,#fc8181,#f56565)'
+          : 'linear-gradient(135deg,#4fd1c7,#81e6d9)';
+    if (type !== 'success' && type !== 'error') n.style.color = '#0f1419';
+    n.innerHTML = `${message}<button onclick="this.parentElement.remove()" style="background:none;border:none;color:inherit;float:right;font-size:18px;cursor:pointer;margin-left:10px;">×</button>`;
+    document.body.appendChild(n);
+    setTimeout(() => n.remove(), 5000);
+}
+
+const style = document.createElement('style');
+style.textContent = `@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}`;
+document.head.appendChild(style);
 
 function showNotification(message, type) {
     const notification = document.createElement('div');
